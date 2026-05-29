@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SUPERSUN — Sell SUPERSUN in your shop</title>
+  <meta name="description" content="Carry SUPERSUN in your shop. 40% commission, made to order, zero inventory. Every sale attributed to your store code, paid monthly." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>/* ============================================
+   SUPERSUN · Sell SUPERSUN (wholesale) · stylesheet
+   Vintage editorial · warm cream paper · fine art gallery
+============================================ */
+
+@font-face {
+  font-family: 'FlowersKingdom';
+  src: url('/fonts/Flowers_Kingdom.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+/* FONT-INJECTION-POINT - production build merges FlowersKingdom @font-face here */
+/* Working file uses Cormorant Garamond (already loaded above) as design substitute */
+
+:root {
+  --paper: #EDE7D3;
+  --paper-deep: #E2DAC0;
+  --ink: #2D2E20;
+  --ink-soft: #5a5b48;
+  --ink-faint: #8a8a73;
+  --accent: #C8463A;
+  --line: rgba(45, 46, 32, 0.12);
+  --line-strong: rgba(45, 46, 32, 0.4);
+  --radius: 4px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.55;
+  font-size: 16px;
+}
+
+a { color: var(--ink); text-decoration: none; }
+img { max-width: 100%; display: block; }
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+/* ===== NAV ===== */
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 44px 32px 22px;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.nav-logo {
+  font-family: 'FlowersKingdom', 'Cormorant Garamond', Georgia, serif;
+  font-size: 26px;
+  letter-spacing: 1px;
+}
+.nav-links { display: flex; gap: 28px; }
+.nav-links a {
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--ink-soft);
+  transition: color 0.15s;
+}
+.nav-links a:hover { color: var(--ink); }
+
+@media (max-width: 640px) {
+  .nav { padding: 36px 16px 18px; }
+  .nav-links { gap: 14px; }
+  .nav-links a { font-size: 11px; letter-spacing: 0.8px; }
+  .nav-logo { font-size: 20px; }
+}
+
+/* ===== LAYOUT ===== */
+.wrap { max-width: 1000px; margin: 0 auto; padding: 0 32px; }
+
+.wholesale-head { padding: 72px 0 8px; max-width: 640px; }
+.wholesale-title {
+  font-family: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
+  font-weight: 500;
+  font-style: italic;
+  font-size: clamp(34px, 5vw, 60px);
+  line-height: 1.05;
+  letter-spacing: -0.5px;
+  margin-top: 10px;
+}
+.wholesale-lead {
+  font-family: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
+  font-size: clamp(19px, 1.6vw, 22px);
+  line-height: 1.55;
+  margin-top: 18px;
+  max-width: 56ch;
+}
+
+/* ===== THE DEAL (cards) ===== */
+.deal {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 56px 0;
+}
+.deal-card {
+  background: var(--paper);
+  padding: 28px 26px;
+}
+.deal-num {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 38px;
+  line-height: 1;
+  color: var(--accent);
+}
+.deal-card h3 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 500;
+  font-size: 23px;
+  margin: 10px 0 6px;
+}
+.deal-card p { font-size: 14px; color: var(--ink-soft); line-height: 1.5; }
+
+/* ===== HOW IT WORKS ===== */
+.steps { border-top: 1px solid var(--line); padding: 48px 0; }
+.steps .eyebrow { display: block; margin-bottom: 24px; }
+.step-row {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 20px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.step-row:last-child { border-bottom: none; }
+.step-n {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 26px;
+  color: var(--ink-faint);
+}
+.step-row h4 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 500;
+  font-size: 21px;
+  margin-bottom: 2px;
+}
+.step-row p { font-size: 14px; color: var(--ink-soft); }
+
+/* ===== APPLICATION FORM ===== */
+.apply {
+  border-top: 1px solid var(--line);
+  padding: 56px 0 96px;
+}
+.apply .eyebrow { display: block; }
+.apply h2 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 500;
+  font-style: italic;
+  font-size: clamp(28px, 3.5vw, 42px);
+  margin: 8px 0 28px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  max-width: 680px;
+}
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field.full { grid-column: 1 / -1; }
+.field label {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.field input, .field textarea {
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+}
+.field textarea { resize: vertical; min-height: 96px; }
+.field input:focus, .field textarea:focus { outline: none; border-color: var(--ink); }
+.apply-btn {
+  margin-top: 24px;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--paper);
+  background: var(--ink);
+  border: none;
+  border-radius: var(--radius);
+  padding: 15px 32px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.apply-btn:hover { opacity: 0.85; }
+.form-note { font-size: 13px; color: var(--ink-faint); margin-top: 14px; }
+
+@media (max-width: 640px) {
+  .wrap { padding: 0 20px; }
+  .wholesale-head { padding: 48px 0 4px; }
+  .deal { grid-template-columns: 1fr; margin: 40px 0; }
+  .form-grid { grid-template-columns: 1fr; }
+}
+
+/* ===== FOOTER ===== */
+.footer {
+  border-top: 1px solid var(--line);
+  padding: 48px 64px 32px;
+  background: var(--paper-deep);
+}
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  max-width: 1400px;
+  margin: 0 auto 32px;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+.footer-logo {
+  font-family: 'FlowersKingdom', 'Cormorant Garamond', Georgia, serif;
+  font-size: 28px;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  padding-top: 4px;
+}
+.footer-tag { font-size: 12px; color: var(--ink-soft); letter-spacing: 0.5px; }
+.footer-links { display: flex; gap: 28px; flex-wrap: wrap; }
+.footer-links a {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+.footer-copy {
+  text-align: center;
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: 0.5px;
+  max-width: 1400px;
+  margin: 0 auto;
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+}
+@media (max-width: 640px) { .footer { padding: 40px 24px 24px; } }
+</style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">SUPERSUN</a>
+    <div class="nav-links">
+      <a href="supersun-gallery.html">Collections</a>
+      <a href="supersun-about.html">About</a>
+      <a href="supersun-contact.html">Contact</a>
+      <a href="supersun-wholesale.html" style="color: var(--ink);">Sell SUPERSUN</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="wrap">
+      <header class="wholesale-head">
+        <p class="eyebrow">Wholesale</p>
+        <h1 class="wholesale-title">Sell SUPERSUN in your shop.</h1>
+        <p class="wholesale-lead">
+          Carry hand-made fine art without carrying inventory. Every piece is made to order, shipped
+          direct to your customer, and credited to your shop — you earn on every sale, with nothing
+          to stock and nothing to ship.
+        </p>
+      </header>
+
+      <!-- THE DEAL -->
+      <section class="deal">
+        <div class="deal-card">
+          <div class="deal-num">40%</div>
+          <h3>Commission on every sale</h3>
+          <p>A flat 40% of each order placed under your store code. No tiers, no minimums.</p>
+        </div>
+        <div class="deal-card">
+          <div class="deal-num">0</div>
+          <h3>Inventory, zero risk</h3>
+          <p>Made to order. You never buy stock, hold product, or handle fulfillment — we make and ship each piece.</p>
+        </div>
+        <div class="deal-card">
+          <div class="deal-num">∞</div>
+          <h3>Your store code at checkout</h3>
+          <p>Every customer enters your code at checkout, so each sale is attributed to your shop automatically.</p>
+        </div>
+        <div class="deal-card">
+          <div class="deal-num">1st</div>
+          <h3>Paid monthly</h3>
+          <p>Your earnings for the prior month land in the first week of the next — clean, predictable, on time.</p>
+        </div>
+      </section>
+
+      <!-- HOW IT WORKS -->
+      <section class="steps">
+        <span class="eyebrow">How it works</span>
+        <div class="step-row">
+          <div class="step-n">01</div>
+          <div><h4>Apply</h4><p>Tell us about your shop below. We review every application by hand.</p></div>
+        </div>
+        <div class="step-row">
+          <div class="step-n">02</div>
+          <div><h4>Get your kit</h4><p>Approved shops receive a unique store code plus display materials and a card for the counter.</p></div>
+        </div>
+        <div class="step-row">
+          <div class="step-n">03</div>
+          <div><h4>Customers order</h4><p>They design a piece, enter your code at checkout, and we make and ship it direct.</p></div>
+        </div>
+        <div class="step-row">
+          <div class="step-n">04</div>
+          <div><h4>You get paid</h4><p>40% of every attributed sale, paid out in the first week of each month.</p></div>
+        </div>
+      </section>
+
+      <!-- APPLY -->
+      <section class="apply" id="apply">
+        <span class="eyebrow">Apply to carry SUPERSUN</span>
+        <h2>Tell us about your shop.</h2>
+
+        <form name="wholesale-application" method="POST" action="/thank-you.html" data-netlify="true" netlify-honeypot="bot-field">
+          <input type="hidden" name="form-name" value="wholesale-application" />
+          <p style="display:none"><label>Don't fill this out: <input name="bot-field" /></label></p>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="shop">Shop name</label>
+              <input id="shop" name="shop" type="text" required />
+            </div>
+            <div class="field">
+              <label for="contact">Your name</label>
+              <input id="contact" name="contact" type="text" required />
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" required />
+            </div>
+            <div class="field">
+              <label for="location">City / location</label>
+              <input id="location" name="location" type="text" required />
+            </div>
+            <div class="field full">
+              <label for="link">Website or Instagram</label>
+              <input id="link" name="link" type="text" placeholder="@yourshop or yourshop.com" />
+            </div>
+            <div class="field full">
+              <label for="message">Tell us about your shop</label>
+              <textarea id="message" name="message" placeholder="What you sell, who your customers are, why SUPERSUN fits."></textarea>
+            </div>
+          </div>
+
+          <button class="apply-btn" type="submit">Send application</button>
+          <p class="form-note">We review every application by hand and reply within a few days.</p>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <p class="footer-logo">SUPERSUN</p>
+        <p class="footer-tag">Made by hand. Made to order.</p>
+      </div>
+      <div class="footer-links">
+        <a href="supersun-gallery.html">Collections</a>
+        <a href="supersun-about.html">About</a>
+        <a href="supersun-contact.html">Contact</a>
+        <a href="supersun-wholesale.html">Sell SUPERSUN</a>
+        <a href="mailto:hello@supersun.com">hello@supersun.com</a>
+      </div>
+    </div>
+    <p class="footer-copy">© <span id="year"></span> SUPERSUN · all work hand-made in California</p>
+  </footer>
+
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>

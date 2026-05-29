@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SUPERSUN — The work and the artist</title>
+  <meta name="description" content="SUPERSUN is the work of the artist Harry — vintage illustration rooted in surf culture and the mystical power of the sun." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>/* ============================================
+   SUPERSUN · About · stylesheet
+   Vintage editorial · warm cream paper · fine art gallery
+============================================ */
+
+@font-face {
+  font-family: 'FlowersKingdom';
+  src: url('/fonts/Flowers_Kingdom.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+/* FONT-INJECTION-POINT - production build merges FlowersKingdom @font-face here */
+/* Working file uses Cormorant Garamond (already loaded above) as design substitute */
+
+:root {
+  --paper: #EDE7D3;
+  --paper-deep: #E2DAC0;
+  --ink: #2D2E20;
+  --ink-soft: #5a5b48;
+  --ink-faint: #8a8a73;
+  --accent: #C8463A;
+  --line: rgba(45, 46, 32, 0.12);
+  --line-strong: rgba(45, 46, 32, 0.4);
+  --radius: 4px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.55;
+  font-size: 16px;
+}
+
+a { color: var(--ink); text-decoration: none; }
+img { max-width: 100%; display: block; }
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+/* ===== NAV ===== */
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 44px 32px 22px;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.nav-logo {
+  font-family: 'FlowersKingdom', 'Cormorant Garamond', Georgia, serif;
+  font-size: 26px;
+  letter-spacing: 1px;
+}
+.nav-links { display: flex; gap: 28px; }
+.nav-links a {
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--ink-soft);
+  transition: color 0.15s;
+}
+.nav-links a:hover { color: var(--ink); }
+
+@media (max-width: 640px) {
+  .nav { padding: 36px 16px 18px; }
+  .nav-links { gap: 14px; }
+  .nav-links a { font-size: 11px; letter-spacing: 0.8px; }
+  .nav-logo { font-size: 20px; }
+}
+
+/* ===== ABOUT ===== */
+.about {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 72px 32px 96px;
+}
+.about-head {
+  margin-bottom: 64px;
+}
+.about-title {
+  font-family: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
+  font-weight: 500;
+  font-style: italic;
+  font-size: clamp(34px, 5vw, 60px);
+  line-height: 1.05;
+  letter-spacing: -0.5px;
+  margin-top: 10px;
+  max-width: 14ch;
+}
+
+.about-section {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 56px;
+  padding: 44px 0;
+  border-top: 1px solid var(--line);
+}
+.about-label {
+  /* small eyebrow where the wordmark used to be */
+  padding-top: 6px;
+}
+.about-label .eyebrow {
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: var(--ink);
+}
+.about-body p {
+  font-family: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
+  font-size: clamp(19px, 1.6vw, 22px);
+  line-height: 1.55;
+  color: var(--ink);
+}
+.about-body p + p { margin-top: 20px; }
+
+.about-cta {
+  margin-top: 72px;
+  text-align: center;
+}
+.about-cta a {
+  display: inline-block;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--paper);
+  background: var(--ink);
+  padding: 14px 26px;
+  border-radius: var(--radius);
+  transition: opacity 0.15s;
+}
+.about-cta a:hover { opacity: 0.85; }
+
+@media (max-width: 640px) {
+  .about { padding: 48px 20px 72px; }
+  .about-head { margin-bottom: 40px; }
+  .about-section {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 32px 0;
+  }
+  .about-label { padding-top: 0; }
+}
+
+/* ===== FOOTER ===== */
+.footer {
+  border-top: 1px solid var(--line);
+  padding: 48px 64px 32px;
+  background: var(--paper-deep);
+}
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  max-width: 1400px;
+  margin: 0 auto 32px;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+.footer-logo {
+  font-family: 'FlowersKingdom', 'Cormorant Garamond', Georgia, serif;
+  font-size: 28px;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  padding-top: 4px;
+}
+.footer-tag {
+  font-size: 12px;
+  color: var(--ink-soft);
+  letter-spacing: 0.5px;
+}
+.footer-links { display: flex; gap: 28px; flex-wrap: wrap; }
+.footer-links a {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+.footer-copy {
+  text-align: center;
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: 0.5px;
+  max-width: 1400px;
+  margin: 0 auto;
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+}
+@media (max-width: 640px) { .footer { padding: 40px 24px 24px; } }
+</style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">SUPERSUN</a>
+    <div class="nav-links">
+      <a href="supersun-gallery.html">Collections</a>
+      <a href="supersun-about.html" style="color: var(--ink);">About</a>
+      <a href="supersun-contact.html">Contact</a>
+      <a href="supersun-wholesale.html">Sell SUPERSUN</a>
+    </div>
+  </nav>
+
+  <main class="about">
+    <div class="about-head">
+      <p class="eyebrow">About</p>
+      <h1 class="about-title">The work and the artist.</h1>
+    </div>
+
+    <section class="about-section">
+      <div class="about-label"><p class="eyebrow">SUPERSUN</p></div>
+      <div class="about-body">
+        <p>
+          SUPERSUN is the work of the artist Harry — a vintage illustration rooted in surf culture
+          and the mystical power of the sun, and in the prism of light it casts across the world.
+        </p>
+        <p>
+          What began as a single drawing has become an iconic, globally recognized work — a quiet
+          emblem for love and community, made personal one piece at a time.
+        </p>
+      </div>
+    </section>
+
+    <section class="about-section">
+      <div class="about-label"><p class="eyebrow">Harry</p></div>
+      <div class="about-body">
+        <p>
+          Harry is a multidisciplinary artist recognized for provocative, narrative-driven work.
+          A storyteller in every sense, he weaves often-dark themes through warmth, color, and a
+          deep reverence for place.
+        </p>
+        <p>
+          SUPERSUN distills that instinct into its purest form: a single sun, a single word,
+          made for the one person it's meant for.
+        </p>
+      </div>
+    </section>
+
+    <div class="about-cta">
+      <a href="index.html#commission">Commission a piece →</a>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <p class="footer-logo">SUPERSUN</p>
+        <p class="footer-tag">Made by hand. Made to order.</p>
+      </div>
+      <div class="footer-links">
+        <a href="supersun-gallery.html">Collections</a>
+        <a href="supersun-about.html">About</a>
+        <a href="supersun-contact.html">Contact</a>
+        <a href="supersun-wholesale.html">Sell SUPERSUN</a>
+        <a href="mailto:hello@supersun.com">hello@supersun.com</a>
+      </div>
+    </div>
+    <p class="footer-copy">© <span id="year"></span> SUPERSUN · all work hand-made in California</p>
+  </footer>
+
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
