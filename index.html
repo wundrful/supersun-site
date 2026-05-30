@@ -591,6 +591,69 @@ input::placeholder { color: var(--ink-faint); }
    - Horizontal: 10% to 89.92% of width = 79.92% width
    - Vertical:   10% to 71.94% of height = 61.94% height (but for a circle, height==width in absolute terms)
    We position the box and use aspect-ratio 959/991 so it's square in pixel space, then mask to circle. */
+/* Color / Graphic mode toggle + scene grid */
+.mode-toggle {
+  display: inline-flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 4px;
+  background: rgba(45, 46, 32, 0.06);
+  border-radius: 999px;
+}
+.mode-btn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  padding: 7px 18px;
+  border-radius: 999px;
+  background: transparent;
+  color: #6B6C5A;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.mode-btn.active {
+  background: #FBF7EC;
+  color: #2D2E20;
+  box-shadow: 0 1px 3px rgba(45, 46, 32, 0.12);
+}
+.graphic-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.graphic-item {
+  appearance: none;
+  border: 1.5px solid rgba(45, 46, 32, 0.12);
+  background: #FBF7EC;
+  border-radius: 12px;
+  padding: 14px 10px 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: border-color 0.18s ease, transform 0.12s ease;
+}
+.graphic-item:hover { transform: translateY(-2px); }
+.graphic-item.active { border-color: #2D2E20; }
+.graphic-item .thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: rgba(45, 46, 32, 0.05);
+}
+.graphic-item .gname {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  color: #2D2E20;
+}
+
 .preview-sun {
   position: absolute;
   left: 10%;
@@ -1339,6 +1402,12 @@ input::placeholder { color: var(--ink-faint); }
 
         <div class="spec-block">
           <div class="step-num">02</div>
+          <div class="mode-toggle" role="tablist" aria-label="Sun style">
+            <button type="button" class="mode-btn active" data-mode="color" role="tab" aria-selected="true">Color sun</button>
+            <button type="button" class="mode-btn" data-mode="graphic" role="tab" aria-selected="false">Graphic</button>
+          </div>
+
+          <div id="palette-controls">
           <label class="spec-label">Your palette</label>
           <p class="spec-hint" style="margin-bottom: 14px;">Describe a place, mood, or memory — or upload a photo. I'll pull six colors. Or pick from the library below.</p>
           <div class="palette-ai">
@@ -1361,6 +1430,13 @@ input::placeholder { color: var(--ink-faint); }
             <summary>Browse the palette library</summary>
             <div class="library-grid" id="library-grid"></div>
           </details>
+          </div><!-- /#palette-controls -->
+
+          <div id="graphic-controls" hidden>
+            <label class="spec-label">Pick a scene</label>
+            <p class="spec-hint" style="margin-bottom: 14px;">A hand-illustrated scene drops into the sun in place of color. Choose one below.</p>
+            <div class="graphic-grid" id="graphic-grid"></div>
+          </div>
         </div>
 
         <div class="spec-block">
@@ -1846,7 +1922,22 @@ const state = {
   size: '30x40',
   price: 1250,
   storeCode: '',
+  mode: 'color',     // 'color' (palette bands) or 'graphic' (a scene drops into the sun)
+  graphic: null,     // id of the selected graphic scene when mode === 'graphic'
 };
+
+/* Graphic Suns: the four scenes the gallery deep-links into via ?graphic=<id>.
+   Images live in /graphics/ (already in the repo) and resolve on the live site. */
+const GRAPHICS = [
+  { id: 'pipeline',    name: 'Pipeline',    file: '/graphics/circle-pipeline.png' },
+  { id: 'golden-gate', name: 'Golden Gate', file: '/graphics/circle-golden-gate.png' },
+  { id: 'el-capitan',  name: 'El Capitan',  file: '/graphics/circle-el-capitan.png' },
+  { id: 'nazare',      name: 'Nazaré',      file: '/graphics/circle-nazare.png' },
+];
+function graphicFileFor(id) {
+  const g = GRAPHICS.find((x) => x.id === id);
+  return g ? g.file : '/graphics/circle-' + id + '.png'; // tolerant fallback by convention
+}
 
 const SIZE_LABELS = {
   '15x20': '15 × 20″',
@@ -1887,11 +1978,18 @@ function renderActivePalette() {
 }
 
 function renderPreview() {
-  // Color bands overlay
+  // Sun overlay: color bands (color mode) or a scene image (graphic mode)
   const sun = document.getElementById('preview-sun');
-  sun.innerHTML = state.colors
-    .map((c) => `<div style="background:${c}"></div>`)
-    .join('');
+  if (state.mode === 'graphic' && state.graphic) {
+    const file = graphicFileFor(state.graphic);
+    // Single full-height div with a background image — reuses .preview-sun > div
+    // flex sizing and the circle mask, so it seats exactly like the color bands.
+    sun.innerHTML = `<div style="background-image:url('${file}');background-size:cover;background-position:center;background-repeat:no-repeat;"></div>`;
+  } else {
+    sun.innerHTML = state.colors
+      .map((c) => `<div style="background:${c}"></div>`)
+      .join('');
+  }
   // Word overlay - SVG text scales to fit panel with preserveAspectRatio
   const text = document.getElementById('preview-word-text');
   const word = state.word || ' ';
@@ -1945,10 +2043,51 @@ function renderLibrary() {
   });
 }
 
+function renderGraphics() {
+  const grid = document.getElementById('graphic-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  GRAPHICS.forEach((g) => {
+    const btn = document.createElement('button');
+    btn.className = 'graphic-item' + (state.graphic === g.id ? ' active' : '');
+    btn.type = 'button';
+    btn.dataset.graphic = g.id;
+    btn.innerHTML = `
+      <span class="thumb" style="background-image:url('${g.file}')"></span>
+      <span class="gname">${g.name}</span>
+    `;
+    btn.addEventListener('click', () => selectGraphic(g.id));
+    grid.appendChild(btn);
+  });
+}
+
+function selectGraphic(id) {
+  state.graphic = id;
+  document.querySelectorAll('.graphic-item').forEach((b) =>
+    b.classList.toggle('active', b.dataset.graphic === id));
+  renderPreview();
+}
+
+function setMode(mode) {
+  state.mode = mode;
+  const isGraphic = mode === 'graphic';
+  document.querySelectorAll('.mode-btn').forEach((b) => {
+    const on = b.dataset.mode === mode;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  document.getElementById('palette-controls').hidden = isGraphic;
+  document.getElementById('graphic-controls').hidden = !isGraphic;
+  // Default to the first scene when switching to graphic with none chosen yet
+  if (isGraphic && !state.graphic) selectGraphic(GRAPHICS[0].id);
+  renderPreview();
+}
+
 function renderAll() {
   renderActivePalette();
   renderPreview();
   renderLibrary();
+  renderGraphics();
 }
 
 /* ===== EVENTS ===== */
@@ -1956,6 +2095,10 @@ function renderAll() {
 document.getElementById('word-input').addEventListener('input', (e) => {
   state.word = e.target.value.toUpperCase();
   renderPreview();
+});
+
+document.querySelectorAll('.mode-btn').forEach((btn) => {
+  btn.addEventListener('click', () => setMode(btn.dataset.mode));
 });
 
 document.querySelectorAll('.size-card').forEach((btn) => {
@@ -2140,6 +2283,8 @@ document.getElementById('commission-btn').addEventListener('click', async () => 
         size: state.size,
         price: state.price,
         storeCode: state.storeCode || null,
+        mode: state.mode,
+        graphic: state.mode === 'graphic' ? state.graphic : null,
       }),
     });
     if (!res.ok) throw new Error('checkout failed');
@@ -2185,6 +2330,7 @@ function applyUrlParams() {
   const paletteSlug = params.get('palette');
   const colorsParam = params.get('colors');
   const word = params.get('word');
+  const graphicParam = params.get('graphic');
   let applied = false;
   let displayName = '';
 
@@ -2220,6 +2366,17 @@ function applyUrlParams() {
     state.word = cleaned;
     const input = document.getElementById('word-input');
     if (input) input.value = cleaned;
+    applied = true;
+  }
+
+  // Graphic deep-link (?graphic=<id>): flip to Graphic mode and drop the scene
+  // into the preview — the piece the gallery's "Commission this" cards rely on.
+  if (graphicParam) {
+    state.graphic = graphicParam;
+    setMode('graphic');
+    renderGraphics();
+    const found = GRAPHICS.find((g) => g.id === graphicParam);
+    displayName = found ? found.name : graphicParam;
     applied = true;
   }
 
