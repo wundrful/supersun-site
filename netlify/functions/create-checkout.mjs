@@ -1,6 +1,7 @@
 // SUPERSUN — Stripe Checkout (Netlify Function)
 // Creates a Stripe Checkout Session for a custom, made-to-order poster.
-// Free shipping (built into the price); collects the shipping address (US).
+// Made to order — pickup in store or shipping quoted by email, so checkout charges
+// the piece price only (no shipping address collected, no shipping charged here).
 // Requires env var STRIPE_SECRET_KEY (set in Netlify, marked secret).
 // Zero dependencies — uses the global fetch + Stripe's form-encoded API.
 
@@ -53,7 +54,10 @@ export default async (req) => {
   params.append("cancel_url", `${origin}/#commission`);
   params.append("billing_address_collection", "auto");
   params.append("phone_number_collection[enabled]", "true");
-  params.append("shipping_address_collection[allowed_countries][0]", "US");
+  // No shipping address / shipping charge at checkout — fulfillment is pickup in store
+  // or shipping quoted separately by email. Surface that on the Stripe page:
+  params.append("custom_text[submit][message]",
+    "Made to order — ready in 10\u201314 days. Pick up in store, or we'll email you a shipping quote.");
   params.append("line_items[0][quantity]", "1");
   params.append("line_items[0][price_data][currency]", "usd");
   params.append("line_items[0][price_data][unit_amount]", String(amount));
