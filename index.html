@@ -355,6 +355,62 @@ input::placeholder { color: var(--ink-faint); }
 }
 .palette-library[open] summary::before { content: "− "; }
 
+/* ===== Graphic mode: toggle + scene grid ===== */
+.mode-toggle {
+  display: inline-flex;
+  gap: 4px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 4px;
+  margin-bottom: 14px;
+}
+.mode-toggle .mode-btn {
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+  padding: 7px 16px;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  border-radius: calc(var(--radius) - 2px);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.mode-toggle .mode-btn.active { background: var(--ink); color: var(--paper); }
+.graphic-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 4px;
+}
+.graphic-item {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: inherit;
+  text-align: left;
+  transition: border-color 0.15s;
+}
+.graphic-item:hover { border-color: var(--ink); }
+.graphic-item.active { border-color: var(--ink); border-width: 2px; padding: 9px; }
+.graphic-item .graphic-thumb {
+  width: 44px; height: 44px; flex: 0 0 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--paper-deep, #E2DAC0);
+  display: block;
+}
+.graphic-item .graphic-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.graphic-item .graphic-name {
+  font-size: 13px; font-weight: 500; color: var(--ink); letter-spacing: 0.2px;
+}
+
 .library-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1291,7 +1347,12 @@ input::placeholder { color: var(--ink-faint); }
 
         <div class="spec-block">
           <div class="step-num">02</div>
-          <label class="spec-label">Your palette</label>
+          <label class="spec-label">Your design</label>
+          <div class="mode-toggle" id="mode-toggle">
+            <button type="button" class="mode-btn active" data-mode="color">Color sun</button>
+            <button type="button" class="mode-btn" data-mode="graphic">Graphic</button>
+          </div>
+          <div id="color-tools">
           <p class="spec-hint" style="margin-bottom: 14px;">Describe a place, mood, or memory — or upload a photo. I'll pull six colors. Or pick from the library below.</p>
           <div class="palette-ai">
             <input type="text" id="vibe-input" placeholder="Pipeline at dawn · Big Sur fog · golden hour…" />
@@ -1313,6 +1374,11 @@ input::placeholder { color: var(--ink-faint); }
             <summary>Browse the palette library</summary>
             <div class="library-grid" id="library-grid"></div>
           </details>
+          </div><!-- /color-tools -->
+          <div id="graphic-tools" hidden>
+            <p class="spec-hint" style="margin-bottom: 14px;">Pick a scene to drop into your sun. Your word below still works.</p>
+            <div class="graphic-grid" id="graphic-grid"></div>
+          </div>
         </div>
 
         <div class="spec-block">
@@ -1798,6 +1864,8 @@ const state = {
   size: '30x40',
   price: 1250,
   storeCode: '',
+  mode: 'color',
+  graphic: null,
 };
 
 const SIZE_LABELS = {
@@ -1829,6 +1897,13 @@ const LIBRARY = [
   { name: 'Zion',                  colors: ['#C55C02','#8F9C30','#44404E','#90485E','#529A7D','#A07A25'] },
 ];
 
+const GRAPHICS = [
+  { id: 'pipeline',    name: 'Pipeline',    file: '/graphics/circle-pipeline.png' },
+  { id: 'golden-gate', name: 'Golden Gate', file: '/graphics/circle-golden-gate.png' },
+  { id: 'el-capitan',  name: 'El Capitan',  file: '/graphics/circle-el-capitan.png' },
+  { id: 'nazare',      name: 'Nazaré',      file: '/graphics/circle-nazare.png' },
+];
+
 /* ===== RENDER ===== */
 
 function renderActivePalette() {
@@ -1841,9 +1916,16 @@ function renderActivePalette() {
 function renderPreview() {
   // Color bands overlay
   const sun = document.getElementById('preview-sun');
-  sun.innerHTML = state.colors
-    .map((c) => `<div style="background:${c}"></div>`)
-    .join('');
+  if (state.mode === 'graphic' && state.graphic) {
+    const g = GRAPHICS.find((x) => x.id === state.graphic);
+    sun.innerHTML = g
+      ? `<img src="${g.file}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" />`
+      : '';
+  } else {
+    sun.innerHTML = state.colors
+      .map((c) => `<div style="background:${c}"></div>`)
+      .join('');
+  }
   // Word overlay - SVG text scales to fit panel with preserveAspectRatio
   const text = document.getElementById('preview-word-text');
   const word = state.word || ' ';
@@ -1897,10 +1979,47 @@ function renderLibrary() {
   });
 }
 
+function renderGraphicsGrid() {
+  const grid = document.getElementById('graphic-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  GRAPHICS.forEach((g) => {
+    const btn = document.createElement('button');
+    btn.className = 'graphic-item' + (state.graphic === g.id ? ' active' : '');
+    btn.type = 'button';
+    btn.innerHTML = `
+      <span class="graphic-thumb"><img src="${g.file}" alt="${g.name}" loading="lazy" /></span>
+      <span class="graphic-name">${g.name}</span>
+    `;
+    btn.addEventListener('click', () => {
+      state.graphic = g.id;
+      if (state.mode !== 'graphic') setMode('graphic');
+      renderGraphicsGrid();
+      renderPreview();
+      const st = document.getElementById('ai-status');
+      if (st) st.textContent = `Selected: ${g.name}`;
+    });
+    grid.appendChild(btn);
+  });
+}
+
+function setMode(mode) {
+  state.mode = mode;
+  const colorTools = document.getElementById('color-tools');
+  const graphicTools = document.getElementById('graphic-tools');
+  if (colorTools) colorTools.hidden = (mode === 'graphic');
+  if (graphicTools) graphicTools.hidden = (mode !== 'graphic');
+  document.querySelectorAll('#mode-toggle .mode-btn').forEach((b) => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+  renderPreview();
+}
+
 function renderAll() {
   renderActivePalette();
   renderPreview();
   renderLibrary();
+  renderGraphicsGrid();
 }
 
 /* ===== EVENTS ===== */
@@ -1908,6 +2027,17 @@ function renderAll() {
 document.getElementById('word-input').addEventListener('input', (e) => {
   state.word = e.target.value.toUpperCase();
   renderPreview();
+});
+
+document.querySelectorAll('#mode-toggle .mode-btn').forEach((b) => {
+  b.addEventListener('click', () => {
+    setMode(b.dataset.mode);
+    if (b.dataset.mode === 'graphic' && !state.graphic && GRAPHICS.length) {
+      state.graphic = GRAPHICS[0].id;
+      renderGraphicsGrid();
+      renderPreview();
+    }
+  });
 });
 
 document.querySelectorAll('.size-card').forEach((btn) => {
@@ -2088,10 +2218,13 @@ document.getElementById('commission-btn').addEventListener('click', async () => 
       body: JSON.stringify({
         word: state.word,
         colors: state.colors,
-        paletteName: state.paletteName,
+        paletteName: (state.mode === 'graphic' && state.graphic)
+          ? 'Graphic — ' + ((GRAPHICS.find((g) => g.id === state.graphic) || {}).name || state.graphic)
+          : state.paletteName,
         size: state.size,
         price: state.price,
         storeCode: state.storeCode || null,
+        graphic: state.mode === 'graphic' ? state.graphic : null,
       }),
     });
     if (!res.ok) throw new Error('checkout failed');
@@ -2137,6 +2270,7 @@ function applyUrlParams() {
   const paletteSlug = params.get('palette');
   const colorsParam = params.get('colors');
   const word = params.get('word');
+  const graphicParam = params.get('graphic');
   let applied = false;
   let displayName = '';
 
@@ -2173,6 +2307,17 @@ function applyUrlParams() {
     const input = document.getElementById('word-input');
     if (input) input.value = cleaned;
     applied = true;
+  }
+
+  if (graphicParam) {
+    const g = GRAPHICS.find((x) => x.id === graphicParam);
+    if (g) {
+      state.graphic = g.id;
+      setMode('graphic');
+      renderGraphicsGrid();
+      displayName = g.name;
+      applied = true;
+    }
   }
 
   if (applied) {
