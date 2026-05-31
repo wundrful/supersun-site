@@ -681,19 +681,17 @@ input::placeholder { color: var(--ink-faint); }
   top: 78.5%;
   height: 17.5%;
   pointer-events: none;
-  overflow: hidden; /* hard guarantee: the word can never spill onto the striped design */
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden; /* belt: SVG meet already contains it, this just guarantees no spill */
+}
+.preview-word svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 #preview-word-text {
   font-family: 'FlowersKingdom', 'Cormorant Garamond', Georgia, serif;
-  color: #2D2E20;
-  font-size: 100px;
-  line-height: 1;
-  letter-spacing: 1px;
-  white-space: nowrap;
-  display: inline-block;
+  fill: #2D2E20;
+  letter-spacing: 0; /* match canvas measurement, which has no letter-spacing */
 }
 /* Anti-theft watermark: single subtle SUPERSUN mark, diagonal across the art.
    Sits above the sun + word overlays, pointer-events:none so the builder stays interactive.
@@ -1497,7 +1495,9 @@ input::placeholder { color: var(--ink-faint); }
             <div class="preview-sun" id="preview-sun"></div>
             <!-- Word overlay: SVG ensures the text scales to fill the panel like the reference -->
             <div class="preview-word">
-              <span id="preview-word-text">MAVERICKS</span>
+              <svg id="preview-word-svg" viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+                <text id="preview-word-text" x="0" y="0" text-anchor="start">MAVERICKS</text>
+              </svg>
             </div>
             <!-- Anti-theft watermark: single subtle diagonal SUPERSUN mark over the art -->
             <div class="preview-watermark" aria-hidden="true"><span>SUPERSUN</span></div>
@@ -1989,37 +1989,33 @@ function renderPreview() {
       .map((c) => `<div style="background:${c}"></div>`)
       .join('');
   }
-  // Word overlay — plain HTML text sized to fit the panel. We measure the TRUE ink
-  // bounds with canvas measureText (actualBoundingBox includes this decorative font's
-  // glyph overhang, which offsetWidth and the advance widths miss), then set font-size
-  // so the inked word fills the box. Canvas metrics are consistent across Chrome/Safari.
-  const wordBox = document.querySelector('.preview-word');
-  const wordFit = document.getElementById('preview-word-text');
+  // Word overlay — SVG text framed by a canvas-measured viewBox. Canvas measureText gives
+  // the true ink bounds on all four sides (overhang included, consistent in Chrome/Safari);
+  // we set the SVG viewBox to exactly that rectangle and let preserveAspectRatio scale and
+  // center it. This avoids getBBox (Safari measures it wrong) and HTML line-box metrics
+  // (which clip tall decorative glyphs). Measurement = canvas; layout/centering = SVG.
+  const svgWord = document.getElementById('preview-word-svg');
+  const textEl = document.getElementById('preview-word-text');
   const word = state.word || ' ';
-  wordFit.textContent = word;
+  const REF = 200; // reference font-size; viewBox lives in this same unit space
+  textEl.textContent = word;
+  textEl.setAttribute('font-size', REF);
   function fitWord() {
-    if (!wordBox || !wordFit) return;
-    const bw = wordBox.clientWidth, bh = wordBox.clientHeight;
-    if ((bw === 0 || bh === 0) && fitWord._tries < 120) {
-      fitWord._tries++;
-      requestAnimationFrame(fitWord);
-      return;
-    }
-    if (bw === 0 || bh === 0) return;
-    const REF = 200; // reference font-size for measurement
     const cv = fitWord._cv || (fitWord._cv = document.createElement('canvas'));
     const ctx = cv.getContext('2d');
     ctx.font = REF + "px 'FlowersKingdom', 'Cormorant Garamond', Georgia, serif";
     const m = ctx.measureText(word);
-    const inkW = ((m.actualBoundingBoxLeft || 0) + (m.actualBoundingBoxRight || 0)) || m.width;
-    const inkH = (m.actualBoundingBoxAscent || REF * 0.8) + (m.actualBoundingBoxDescent || REF * 0.2);
-    if (!inkW || !inkH) return;
-    // Width is limited by the true inked width (overhang-aware); height is limited by the
-    // line box (font-size, line-height:1) so the element always fits and stays centered.
-    const fontPxByWidth = (bw * 0.92) / inkW * REF;
-    const fontPxByHeight = bh * 0.96;
-    const fontPx = Math.min(fontPxByWidth, fontPxByHeight);
-    wordFit.style.fontSize = fontPx + 'px';
+    const aL = m.actualBoundingBoxLeft || 0;
+    const aR = (m.actualBoundingBoxRight != null ? m.actualBoundingBoxRight : m.width) || 0;
+    const aA = m.actualBoundingBoxAscent || REF * 0.8;
+    const aD = m.actualBoundingBoxDescent || REF * 0.2;
+    const w = aL + aR, h = aA + aD;
+    if ((!w || !h) && fitWord._tries < 120) { fitWord._tries++; requestAnimationFrame(fitWord); return; }
+    if (!w || !h) return;
+    // Text sits at x=0, y=0 (alphabetic baseline), so ink spans x:[-aL,+aR], y:[-aA,+aD].
+    const padX = w * 0.05, padY = h * 0.10; // breathing room so glyphs never kiss the edge
+    svgWord.setAttribute('viewBox',
+      (-aL - padX) + ' ' + (-aA - padY) + ' ' + (w + padX * 2) + ' ' + (h + padY * 2));
   }
   fitWord._tries = 0;
   requestAnimationFrame(fitWord);
