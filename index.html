@@ -687,6 +687,7 @@ input::placeholder { color: var(--ink-faint); }
   width: 100%;
   height: 100%;
   display: block;
+  overflow: visible; /* safety net: never clip the word if a fit measures short */
 }
 .preview-word text {
   font-family: 'FlowersKingdom', 'Cormorant Garamond', Georgia, serif;
@@ -2403,21 +2404,18 @@ renderAll();
 // Apply URL params (gallery deep-links) before font-ready re-render
 const hadParams = applyUrlParams();
 
-// Re-fit the word once the custom font is genuinely ready. Safari can resolve the
-// generic document.fonts.ready before FlowersKingdom is applied to the SVG text and
-// then won't re-measure on its own, so we (1) load the specific face and re-fit when
-// THAT resolves, and (2) briefly clear+restore the text to force Safari to recompute
-// the SVG text geometry with the real glyphs.
+// Re-fit the word once the custom font has actually swapped in. With font-display:swap
+// Safari paints the fallback serif first, fits the viewBox to it, and then keeps that
+// stale fit after FlowersKingdom (taller caps) swaps in — clipping the tops. We force a
+// genuine SVG re-layout (toggle display synchronously, no flicker) and re-measure, and
+// we do it on every signal that could mark the swap, since Safari honors them unevenly.
 function refitWord() {
-  const t = document.getElementById('preview-word-text');
   const svg = document.getElementById('preview-word-svg');
-  if (t && svg) {
-    const w = t.textContent;
-    t.textContent = '';
-    try { svg.getBBox(); } catch (e) {}   // force a synchronous reflow
-    t.textContent = w;
-  }
-  renderPreview();
+  if (!svg) return;
+  svg.style.display = 'none';
+  void (svg.parentNode && svg.parentNode.offsetHeight); // force synchronous reflow
+  svg.style.display = '';
+  renderPreview(); // re-measures via getBBox with the real font now applied
 }
 if (document.fonts) {
   if (document.fonts.ready) document.fonts.ready.then(refitWord);
@@ -2425,6 +2423,8 @@ if (document.fonts) {
     document.fonts.load("100px 'FlowersKingdom'").then(refitWord).catch(() => {});
   }
 }
+[120, 400, 900, 1600].forEach(function (ms) { setTimeout(refitWord, ms); });
+window.addEventListener('load', refitWord);
 
 // Smooth-scroll to commission section if hash contains it (gallery deep-link)
 if (window.location.hash.startsWith('#commission')) {
