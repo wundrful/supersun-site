@@ -681,7 +681,7 @@ input::placeholder { color: var(--ink-faint); }
   top: 78.5%;
   height: 17.5%;
   pointer-events: none;
-  overflow: visible;
+  overflow: hidden; /* hard guarantee: the word can never spill onto the striped design */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -694,7 +694,6 @@ input::placeholder { color: var(--ink-faint); }
   letter-spacing: 1px;
   white-space: nowrap;
   display: inline-block;
-  transform-origin: center center;
 }
 /* Anti-theft watermark: single subtle SUPERSUN mark, diagonal across the art.
    Sits above the sun + word overlays, pointer-events:none so the builder stays interactive.
@@ -1990,10 +1989,10 @@ function renderPreview() {
       .map((c) => `<div style="background:${c}"></div>`)
       .join('');
   }
-  // Word overlay — plain HTML text scaled with a CSS transform to fit the panel.
-  // We measure offsetWidth/offsetHeight (reported identically across browsers, unlike
-  // SVG getBBox which Safari computes wrong for this font) and scale to the smaller of
-  // the width/height ratios, so the word always sits inside its box in every browser.
+  // Word overlay — plain HTML text sized to fit the panel. We measure the TRUE ink
+  // bounds with canvas measureText (actualBoundingBox includes this decorative font's
+  // glyph overhang, which offsetWidth and the advance widths miss), then set font-size
+  // so the inked word fills the box. Canvas metrics are consistent across Chrome/Safari.
   const wordBox = document.querySelector('.preview-word');
   const wordFit = document.getElementById('preview-word-text');
   const word = state.word || ' ';
@@ -2001,15 +2000,26 @@ function renderPreview() {
   function fitWord() {
     if (!wordBox || !wordFit) return;
     const bw = wordBox.clientWidth, bh = wordBox.clientHeight;
-    const tw = wordFit.offsetWidth, th = wordFit.offsetHeight; // unaffected by transform
-    if ((bw === 0 || tw === 0 || th === 0) && fitWord._tries < 120) {
+    if ((bw === 0 || bh === 0) && fitWord._tries < 120) {
       fitWord._tries++;
       requestAnimationFrame(fitWord);
       return;
     }
-    if (tw === 0 || th === 0) return;
-    const s = Math.min(bw / tw, bh / th) * 0.96; // 0.96 = a hair of breathing room
-    wordFit.style.transform = 'scale(' + s + ')';
+    if (bw === 0 || bh === 0) return;
+    const REF = 200; // reference font-size for measurement
+    const cv = fitWord._cv || (fitWord._cv = document.createElement('canvas'));
+    const ctx = cv.getContext('2d');
+    ctx.font = REF + "px 'FlowersKingdom', 'Cormorant Garamond', Georgia, serif";
+    const m = ctx.measureText(word);
+    const inkW = ((m.actualBoundingBoxLeft || 0) + (m.actualBoundingBoxRight || 0)) || m.width;
+    const inkH = (m.actualBoundingBoxAscent || REF * 0.8) + (m.actualBoundingBoxDescent || REF * 0.2);
+    if (!inkW || !inkH) return;
+    // Width is limited by the true inked width (overhang-aware); height is limited by the
+    // line box (font-size, line-height:1) so the element always fits and stays centered.
+    const fontPxByWidth = (bw * 0.92) / inkW * REF;
+    const fontPxByHeight = bh * 0.96;
+    const fontPx = Math.min(fontPxByWidth, fontPxByHeight);
+    wordFit.style.fontSize = fontPx + 'px';
   }
   fitWord._tries = 0;
   requestAnimationFrame(fitWord);
