@@ -682,18 +682,19 @@ input::placeholder { color: var(--ink-faint); }
   height: 17.5%;
   pointer-events: none;
   overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.preview-word svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-  overflow: visible; /* safety net: never clip the word if a fit measures short */
-}
-.preview-word text {
+#preview-word-text {
   font-family: 'FlowersKingdom', 'Cormorant Garamond', Georgia, serif;
-  fill: #2D2E20;
+  color: #2D2E20;
   font-size: 100px;
+  line-height: 1;
   letter-spacing: 1px;
+  white-space: nowrap;
+  display: inline-block;
+  transform-origin: center center;
 }
 /* Anti-theft watermark: single subtle SUPERSUN mark, diagonal across the art.
    Sits above the sun + word overlays, pointer-events:none so the builder stays interactive.
@@ -1497,9 +1498,7 @@ input::placeholder { color: var(--ink-faint); }
             <div class="preview-sun" id="preview-sun"></div>
             <!-- Word overlay: SVG ensures the text scales to fill the panel like the reference -->
             <div class="preview-word">
-              <svg id="preview-word-svg" viewBox="0 0 1000 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-                <text id="preview-word-text" x="500" y="160" text-anchor="middle">MAVERICKS</text>
-              </svg>
+              <span id="preview-word-text">MAVERICKS</span>
             </div>
             <!-- Anti-theft watermark: single subtle diagonal SUPERSUN mark over the art -->
             <div class="preview-watermark" aria-hidden="true"><span>SUPERSUN</span></div>
@@ -1991,33 +1990,29 @@ function renderPreview() {
       .map((c) => `<div style="background:${c}"></div>`)
       .join('');
   }
-  // Word overlay - SVG text scales to fit panel with preserveAspectRatio
-  const text = document.getElementById('preview-word-text');
+  // Word overlay — plain HTML text scaled with a CSS transform to fit the panel.
+  // We measure offsetWidth/offsetHeight (reported identically across browsers, unlike
+  // SVG getBBox which Safari computes wrong for this font) and scale to the smaller of
+  // the width/height ratios, so the word always sits inside its box in every browser.
+  const wordBox = document.querySelector('.preview-word');
+  const wordFit = document.getElementById('preview-word-text');
   const word = state.word || ' ';
-  text.textContent = word;
-  // Measure the text, then set the viewBox to tight bounds so the word fills the panel.
-  // The custom font may not be applied on the very first frame, so we retry until the
-  // text has a measurable width. A definitive re-fit happens once FlowersKingdom's
-  // load() promise resolves (see INIT) — that's what makes Safari match Chrome.
-  function fitText() {
-    const svg = document.getElementById('preview-word-svg');
-    try {
-      const bbox = text.getBBox();
-      if (bbox.width === 0 && fitText._tries < 120) {
-        fitText._tries++;
-        requestAnimationFrame(fitText);
-        return;
-      }
-      if (bbox.width === 0) return; // not laid out yet; a later render will catch it
-      // Add a small padding to viewBox
-      const padX = bbox.width * 0.02;
-      const padY = bbox.height * 0.05;
-      svg.setAttribute('viewBox',
-        `${bbox.x - padX} ${bbox.y - padY} ${bbox.width + padX*2} ${bbox.height + padY*2}`);
-    } catch (e) { /* getBBox may fail if not in DOM yet */ }
+  wordFit.textContent = word;
+  function fitWord() {
+    if (!wordBox || !wordFit) return;
+    const bw = wordBox.clientWidth, bh = wordBox.clientHeight;
+    const tw = wordFit.offsetWidth, th = wordFit.offsetHeight; // unaffected by transform
+    if ((bw === 0 || tw === 0 || th === 0) && fitWord._tries < 120) {
+      fitWord._tries++;
+      requestAnimationFrame(fitWord);
+      return;
+    }
+    if (tw === 0 || th === 0) return;
+    const s = Math.min(bw / tw, bh / th) * 0.96; // 0.96 = a hair of breathing room
+    wordFit.style.transform = 'scale(' + s + ')';
   }
-  fitText._tries = 0;
-  requestAnimationFrame(fitText);
+  fitWord._tries = 0;
+  requestAnimationFrame(fitWord);
   // Size + price in spec rows
   document.getElementById('pv-size').textContent = SIZE_LABELS[state.size];
   const pvPrice = document.getElementById('pv-price');
@@ -2404,19 +2399,10 @@ renderAll();
 // Apply URL params (gallery deep-links) before font-ready re-render
 const hadParams = applyUrlParams();
 
-// Re-fit the word once the custom font has actually swapped in. With font-display:swap
-// Safari paints the fallback serif first, fits the viewBox to it, and then keeps that
-// stale fit after FlowersKingdom (taller caps) swaps in — clipping the tops. We force a
-// genuine SVG re-layout (toggle display synchronously, no flicker) and re-measure, and
-// we do it on every signal that could mark the swap, since Safari honors them unevenly.
-function refitWord() {
-  const svg = document.getElementById('preview-word-svg');
-  if (!svg) return;
-  svg.style.display = 'none';
-  void (svg.parentNode && svg.parentNode.offsetHeight); // force synchronous reflow
-  svg.style.display = '';
-  renderPreview(); // re-measures via getBBox with the real font now applied
-}
+// Re-fit the word once the custom font has swapped in. With the HTML approach we just
+// re-render: offsetWidth/offsetHeight now reflect FlowersKingdom, so the scale recomputes
+// correctly. We fire on every signal that could mark the swap (Safari honors them unevenly).
+function refitWord() { renderPreview(); }
 if (document.fonts) {
   if (document.fonts.ready) document.fonts.ready.then(refitWord);
   if (document.fonts.load) {
