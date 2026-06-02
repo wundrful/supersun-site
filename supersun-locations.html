@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SUPERSUN — Locations</title>
+  <meta name="description" content="Where to find SUPERSUN in person — galleries and shops carrying hand-made sun art." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+@font-face {
+  font-family: 'FlowersKingdom';
+  src: url('/fonts/Flowers_Kingdom.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+/* FONT-INJECTION-POINT - production build merges FlowersKingdom @font-face here */
+
+:root {
+  --paper: #EDE7D3;
+  --paper-deep: #E2DAC0;
+  --ink: #2D2E20;
+  --ink-soft: #5a5b48;
+  --ink-faint: #8a8a73;
+  --accent: #C8463A;
+  --line: rgba(45, 46, 32, 0.12);
+  --line-strong: rgba(45, 46, 32, 0.4);
+  --radius: 4px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.55;
+  font-size: 16px;
+}
+a { color: var(--ink); text-decoration: none; }
+img { max-width: 100%; display: block; }
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.section-title {
+  font-family: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(32px, 4.5vw, 52px);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  margin: 8px 0 12px;
+  font-style: italic;
+}
+.section-sub {
+  max-width: 560px;
+  margin: 0 auto;
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+
+/* ===== NAV ===== */
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 44px 32px 22px;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.nav-logo {
+  font-family: 'FlowersKingdom', 'Cormorant Garamond', Georgia, serif;
+  font-size: 26px;
+  letter-spacing: 1px;
+}
+.nav-links { display: flex; gap: 28px; }
+.nav-links a {
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--ink-soft);
+  transition: color 0.15s;
+}
+.nav-links a:hover, .nav-links a[aria-current="page"] { color: var(--ink); }
+@media (max-width: 640px) {
+  .nav { padding: 36px 16px 18px; }
+  .nav-links { gap: 14px; }
+  .nav-links a { font-size: 11px; letter-spacing: 0.8px; }
+  .nav-logo { font-size: 20px; }
+}
+
+/* ===== LOCATIONS ===== */
+.loc-hero {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 96px 24px 8px;
+}
+.stockists {
+  padding: 56px 64px 110px;
+}
+.stockists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.store-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px;
+  background: var(--paper-deep);
+}
+.store-card h3 {
+  font-family: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 26px;
+  letter-spacing: -0.3px;
+  margin-bottom: 14px;
+}
+.store-meta { display: flex; flex-direction: column; gap: 8px; }
+.store-meta p { color: var(--ink-soft); font-size: 14px; line-height: 1.45; }
+.store-meta a { color: var(--ink-soft); }
+.store-meta a:hover { color: var(--ink); }
+
+/* ===== FOOTER ===== */
+.footer {
+  border-top: 1px solid var(--line);
+  padding: 48px 64px 32px;
+  background: var(--paper-deep);
+}
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  max-width: 1400px;
+  margin: 0 auto 32px;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+.footer-logo {
+  font-family: 'FlowersKingdom', 'Cormorant Garamond', Georgia, serif;
+  font-size: 28px;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  padding-top: 4px;
+}
+.footer-tag {
+  font-size: 12px;
+  color: var(--ink-soft);
+  letter-spacing: 0.5px;
+}
+.footer-links {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+.footer-links a {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+.footer-links a:hover { color: var(--ink); }
+.footer-copy {
+  text-align: center;
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: 0.5px;
+  max-width: 1400px;
+  margin: 0 auto;
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+}
+@media (max-width: 880px) { .stockists { padding: 40px 24px 70px; } }
+@media (max-width: 640px) { .footer { padding: 40px 24px 24px; } }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">SUPERSUN</a>
+    <div class="nav-links">
+      <a href="supersun-gallery.html">Collections</a>
+      <a href="supersun-about.html">About</a>
+      <a href="supersun-locations.html" aria-current="page">Locations</a>
+      <a href="supersun-wholesale.html">Sell SUPERSUN</a>
+    </div>
+  </nav>
+
+  <header class="loc-hero">
+    <p class="eyebrow">Locations</p>
+    <h1 class="section-title">Where to find SUPERSUN.</h1>
+    <p class="section-sub">See the work in person. SUPERSUN is carried at a small, growing set of galleries and shops.</p>
+  </header>
+
+  <section class="stockists">
+    <div class="stockists-grid">
+      <div class="store-card">
+        <h3>Walstory Gallery</h3>
+        <div class="store-meta">
+          <p><a href="https://maps.google.com/?q=919+Manhattan+Avenue,+Manhattan+Beach,+CA+90266" target="_blank" rel="noopener">919 Manhattan Avenue<br>Manhattan Beach, CA 90266</a></p>
+          <p><a href="tel:+13109206500">310.920.6500</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <p class="footer-logo">SUPERSUN</p>
+        <p class="footer-tag">Made by hand. Made to order.</p>
+      </div>
+      <div class="footer-links">
+        <a href="supersun-gallery.html">Collections</a>
+        <a href="supersun-about.html">About</a>
+        <a href="supersun-locations.html">Locations</a>
+        <a href="supersun-contact.html">Contact</a>
+        <a href="supersun-wholesale.html">Sell SUPERSUN</a>
+        <a href="https://instagram.com/supersun.art" target="_blank" rel="noopener">Instagram</a>
+        <a href="mailto:hello@supersun.art">hello@supersun.art</a>
+      </div>
+    </div>
+    <p class="footer-copy">© <span id="year"></span> SUPERSUN · all work hand-made in California</p>
+  </footer>
+
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
