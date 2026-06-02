@@ -1272,6 +1272,42 @@ input::placeholder { color: var(--ink-faint); }
   .wholesale-faq { padding: 48px 0 64px; }
 }
 
+/* ===== STOCKISTS ===== */
+.stockists {
+  padding: 100px 64px;
+  border-top: 1px solid var(--line);
+}
+.stockists-header {
+  text-align: center;
+  margin: 0 auto 56px;
+  max-width: 1400px;
+}
+.stockists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.store-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px;
+  background: var(--paper-deep);
+}
+.store-card h3 {
+  font-family: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 26px;
+  letter-spacing: -0.3px;
+  margin-bottom: 14px;
+}
+.store-meta { display: flex; flex-direction: column; gap: 8px; }
+.store-meta p { color: var(--ink-soft); font-size: 14px; line-height: 1.45; }
+.store-meta a { color: var(--ink-soft); }
+.store-meta a:hover { color: var(--ink); }
+
 /* ===== FOOTER ===== */
 .footer {
   border-top: 1px solid var(--line);
@@ -1330,7 +1366,7 @@ input::placeholder { color: var(--ink-faint); }
     <div class="nav-links">
       <a href="supersun-gallery.html">Collections</a>
       <a href="supersun-about.html">About</a>
-      <a href="supersun-contact.html">Contact</a>
+      <a href="supersun-locations.html">Locations</a>
       <a href="supersun-wholesale.html">Sell SUPERSUN</a>
     </div>
   </nav>
@@ -1558,8 +1594,10 @@ input::placeholder { color: var(--ink-faint); }
       <div class="footer-links">
         <a href="supersun-gallery.html">Collections</a>
         <a href="supersun-about.html">About</a>
+        <a href="supersun-locations.html">Locations</a>
         <a href="supersun-contact.html">Contact</a>
         <a href="supersun-wholesale.html">Sell SUPERSUN</a>
+        <a href="https://instagram.com/supersun.art" target="_blank" rel="noopener">Instagram</a>
         <a href="mailto:hello@supersun.art">hello@supersun.art</a>
       </div>
     </div>
