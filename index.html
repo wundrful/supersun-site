@@ -2283,29 +2283,11 @@ document.getElementById('store-code').addEventListener('input', (e) => {
     return;
   }
 
-  // Debounce server validation by 400ms
-  clearTimeout(storeValidationTimer);
-  status.textContent = 'Checking…';
-  storeValidationTimer = setTimeout(async () => {
-    try {
-      if(FAKE_STORES[raw]){status.textContent='✓ '+FAKE_STORES[raw];status.classList.add('valid');return;}if(raw){status.textContent='Unknown store code';status.classList.add('invalid');return;}
-const res = await fetch('/api/validate-store', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: raw }),
-      });
-      const data = await res.json();
-      if (data.valid && data.name) {
-        status.textContent = `✓ ${data.name}`;
-        status.classList.add('valid');
-      } else {
-        status.textContent = 'Unknown store code';
-        status.classList.add('invalid');
-      }
-    } catch {
-      status.textContent = '';
-    }
-  }, 400);
+  // Accept whatever code the shop gave the customer — no list to maintain, no redeploy
+  // when you onboard a store. The code rides through to Stripe either way; if it happens
+  // to match a shop we recognize, name it, otherwise just confirm it was applied.
+  status.textContent = FAKE_STORES[raw] ? '\u2713 ' + FAKE_STORES[raw] : '\u2713 Code applied';
+  status.classList.add('valid');
 });
 
 /* ===== COMMISSION ===== */
