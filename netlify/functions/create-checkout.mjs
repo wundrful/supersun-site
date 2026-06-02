@@ -70,6 +70,15 @@ export default async (req) => {
   params.append("metadata[palette_colors]", colors);
   if (storeCode) params.append("metadata[store_code]", storeCode);
 
+  // Also stamp the PaymentIntent. The Dashboard Payments list and CSV export read the
+  // PaymentIntent/charge, NOT the Checkout Session — so session metadata alone won't
+  // surface there. Duplicating onto payment_intent_data is what makes monthly
+  // "export payments and total by store code" actually work with no backend.
+  params.append("payment_intent_data[metadata][word]", word);
+  params.append("payment_intent_data[metadata][size_label]", sizeLabel);
+  if (paletteName) params.append("payment_intent_data[metadata][palette_name]", paletteName);
+  if (storeCode) params.append("payment_intent_data[metadata][store_code]", storeCode);
+
   try {
     const r = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
