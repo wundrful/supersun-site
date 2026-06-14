@@ -1371,6 +1371,13 @@ input::placeholder { color: var(--ink-faint); }
   border-top: 1px solid var(--line);
   padding-top: 24px;
 }
+.footer-credit {
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--line-strong);
+  padding-bottom: 1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.footer-credit:hover { color: var(--accent); border-color: var(--accent); }
 @media (max-width: 640px) { .footer { padding: 40px 24px 24px; } }
 </style>
 </head>
@@ -1616,7 +1623,7 @@ input::placeholder { color: var(--ink-faint); }
         <a href="mailto:hello@supersun.art">hello@supersun.art</a>
       </div>
     </div>
-    <p class="footer-copy">© <span id="year"></span> SUPERSUN · all work hand-made in California</p>
+    <p class="footer-copy">© <span id="year"></span> SUPERSUN · all work hand-made in California · Art by Harry — <a class="footer-credit" href="https://harry.art" target="_blank" rel="noopener">harry.art ↗</a></p>
   </footer>
 
   <script>const FAKE_STORES={'MBSURF':'Manhattan Beach Surf Co.','HBVINTAGE':'Hermosa Vintage','OCEAN':'Ocean Gallery'};
