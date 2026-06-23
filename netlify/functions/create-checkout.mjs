@@ -1,23 +1,44 @@
 // SUPERSUN — Stripe Checkout (Netlify Function)
-// Creates a Stripe Checkout Session for a custom, made-to-order poster.
+// Creates a Stripe Checkout Session for either a custom SUPERSUN poster (default)
+// or a Surf Art print (body.product === "surf-art").
 // Made to order — pickup in store or shipping quoted by email, so checkout charges
 // the piece price only (no shipping address collected, no shipping charged here).
 // Requires env var STRIPE_SECRET_KEY (set in Netlify, marked secret).
 // Zero dependencies — uses the global fetch + Stripe's form-encoded API.
 
+// ───────────────────────────────────────────────────────────────────────────────
 // Server-trusted prices (in cents). The client never sets the price —
-// we look it up from the size here so the amount can't be tampered with.
-const PRICES = {
-  "15x20": 32500,   // $325
-  "24x32": 65000,   // $650
-  "30x40": 125000,  // $1,250
-  "45x60": 175000,  // $1,750
+// we look it up from the size + product line here so the amount can't be tampered with.
+// ───────────────────────────────────────────────────────────────────────────────
+
+// SUPERSUN poster prices
+const SUPERSUN_PRICES = {
+  "15x20": 25000,   // $250
+  "24x32": 50000,   // $500
+  "30x40": 75000,   // $750
+  "45x60": 125000,  // $1,250
 };
-const SIZE_LABELS = {
+const SUPERSUN_SIZE_LABELS = {
   "15x20": "15 × 20 in",
   "24x32": "24 × 32 in",
   "30x40": "30 × 40 in",
   "45x60": "45 × 60 in",
+};
+
+// Surf Art print prices
+const SURF_ART_PRICES = {
+  "30x20": 50000,    // $500
+  "45x30": 125000,   // $1,250
+  "60x40": 375000,   // $3,750
+  "75x50": 495000,   // $4,950
+  "90x60": 825000,   // $8,250
+};
+const SURF_ART_SIZE_LABELS = {
+  "30x20": "30 × 20 in",
+  "45x30": "45 × 30 in",
+  "60x40": "60 × 40 in",
+  "75x50": "75 × 50 in",
+  "90x60": "90 × 60 in",
 };
 
 export default async (req) => {
@@ -30,10 +51,23 @@ export default async (req) => {
   let body = {};
   try { body = await req.json(); } catch (_) {}
 
+  // Branch on product line. Default is SUPERSUN; Surf Art uses "surf-art".
+  const product = String(body.product || "supersun").toLowerCase();
+
+  if (product === "surf-art" || product === "be") {
+    return handleSurfArt(body, key, req);
+  }
+  return handleSupersun(body, key, req);
+};
+
+// ───────────────────────────────────────────────────────────────────────────────
+// SUPERSUN (custom poster) — original flow
+// ───────────────────────────────────────────────────────────────────────────────
+async function handleSupersun(body, key, req) {
   const size = String(body.size || "");
-  if (!PRICES[size]) return json({ error: "invalid_size" }, 400);
-  const amount = PRICES[size];               // trusted price, in cents
-  const sizeLabel = SIZE_LABELS[size];
+  if (!SUPERSUN_PRICES[size]) return json({ error: "invalid_size" }, 400);
+  const amount = SUPERSUN_PRICES[size];        // trusted price, in cents
+  const sizeLabel = SUPERSUN_SIZE_LABELS[size];
 
   const word = (String(body.word || "").slice(0, 40).trim()) || "SUPERSUN";
   const paletteName = String(body.paletteName || "").slice(0, 60).trim();
@@ -54,8 +88,6 @@ export default async (req) => {
   params.append("cancel_url", `${origin}/#commission`);
   params.append("billing_address_collection", "auto");
   params.append("phone_number_collection[enabled]", "true");
-  // No shipping address / shipping charge at checkout — fulfillment is pickup in store
-  // or shipping quoted separately by email. Surface that on the Stripe page:
   params.append("custom_text[submit][message]",
     "Made to order — ready in 10\u201314 days. Pick up in store, or we'll email you a shipping quote.");
   params.append("line_items[0][quantity]", "1");
@@ -63,6 +95,7 @@ export default async (req) => {
   params.append("line_items[0][price_data][unit_amount]", String(amount));
   params.append("line_items[0][price_data][product_data][name]", `SUPERSUN — ${sizeLabel} poster`);
   params.append("line_items[0][price_data][product_data][description]", description);
+  params.append("metadata[product]", "supersun");
   params.append("metadata[word]", word);
   params.append("metadata[size]", size);
   params.append("metadata[size_label]", sizeLabel);
@@ -70,15 +103,69 @@ export default async (req) => {
   params.append("metadata[palette_colors]", colors);
   if (storeCode) params.append("metadata[store_code]", storeCode);
 
-  // Also stamp the PaymentIntent. The Dashboard Payments list and CSV export read the
-  // PaymentIntent/charge, NOT the Checkout Session — so session metadata alone won't
-  // surface there. Duplicating onto payment_intent_data is what makes monthly
-  // "export payments and total by store code" actually work with no backend.
+  // Also stamp the PaymentIntent so it shows up in Stripe's Payments export
+  // (the Dashboard's CSV reads PaymentIntent metadata, not Session metadata).
+  params.append("payment_intent_data[metadata][product]", "supersun");
   params.append("payment_intent_data[metadata][word]", word);
   params.append("payment_intent_data[metadata][size_label]", sizeLabel);
   if (paletteName) params.append("payment_intent_data[metadata][palette_name]", paletteName);
   if (storeCode) params.append("payment_intent_data[metadata][store_code]", storeCode);
 
+  return submitToStripe(params, key);
+}
+
+// ───────────────────────────────────────────────────────────────────────────────
+// SURF ART — a series of fine art prints by Harry. Currently one piece: BE.
+// Fixed artwork (no palette/word customization), choose size only.
+// ───────────────────────────────────────────────────────────────────────────────
+async function handleSurfArt(body, key, req) {
+  const size = String(body.size || "");
+  if (!SURF_ART_PRICES[size]) return json({ error: "invalid_size" }, 400);
+  const amount = SURF_ART_PRICES[size];        // trusted price, in cents
+  const sizeLabel = SURF_ART_SIZE_LABELS[size];
+
+  const title = (String(body.title || "BE").slice(0, 40).trim()) || "BE";
+  const artist = (String(body.artist || "Harry").slice(0, 40).trim()) || "Harry";
+  const storeCode = String(body.storeCode || "").slice(0, 40).trim();
+
+  const origin = new URL(req.url).origin;
+  const description = `${title} · by ${artist} · Surf Art Series · Print №01`.slice(0, 480);
+
+  const params = new URLSearchParams();
+  params.append("mode", "payment");
+  params.append("success_url", `${origin}/order-confirmed.html?session_id={CHECKOUT_SESSION_ID}`);
+  params.append("cancel_url", `${origin}/surf-art.html`);
+  params.append("billing_address_collection", "auto");
+  params.append("phone_number_collection[enabled]", "true");
+  params.append("custom_text[submit][message]",
+    "Made to order — ready in 14\u201321 days. Pick up in store, or we'll email you a shipping quote.");
+  params.append("line_items[0][quantity]", "1");
+  params.append("line_items[0][price_data][currency]", "usd");
+  params.append("line_items[0][price_data][unit_amount]", String(amount));
+  params.append("line_items[0][price_data][product_data][name]", `${title} — ${sizeLabel} (Surf Art)`);
+  params.append("line_items[0][price_data][product_data][description]", description);
+  params.append("metadata[product]", "surf-art");
+  params.append("metadata[series]", "surf-art");
+  params.append("metadata[title]", title);
+  params.append("metadata[artist]", artist);
+  params.append("metadata[size]", size);
+  params.append("metadata[size_label]", sizeLabel);
+  if (storeCode) params.append("metadata[store_code]", storeCode);
+
+  // Stamp the PaymentIntent too so Surf Art orders show up cleanly in Stripe exports.
+  params.append("payment_intent_data[metadata][product]", "surf-art");
+  params.append("payment_intent_data[metadata][title]", title);
+  params.append("payment_intent_data[metadata][artist]", artist);
+  params.append("payment_intent_data[metadata][size_label]", sizeLabel);
+  if (storeCode) params.append("payment_intent_data[metadata][store_code]", storeCode);
+
+  return submitToStripe(params, key);
+}
+
+// ───────────────────────────────────────────────────────────────────────────────
+// Shared: actually POST to Stripe and return the session URL.
+// ───────────────────────────────────────────────────────────────────────────────
+async function submitToStripe(params, key) {
   try {
     const r = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
@@ -97,7 +184,7 @@ export default async (req) => {
   } catch (e) {
     return json({ error: "exception", detail: String(e).slice(0, 300) }, 500);
   }
-};
+}
 
 function cors() {
   return {
