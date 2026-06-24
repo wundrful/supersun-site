@@ -25,20 +25,39 @@ const SUPERSUN_SIZE_LABELS = {
   "45x60": "45 × 60 in",
 };
 
-// Surf Art print prices
-const SURF_ART_PRICES = {
-  "30x20": 50000,    // $500
-  "45x30": 125000,   // $1,250
-  "60x40": 375000,   // $3,750
-  "75x50": 495000,   // $4,950
-  "90x60": 825000,   // $8,250
-};
-const SURF_ART_SIZE_LABELS = {
-  "30x20": "30 × 20 in",
-  "45x30": "45 × 30 in",
-  "60x40": "60 × 40 in",
-  "75x50": "75 × 50 in",
-  "90x60": "90 × 60 in",
+// Surf Art print prices — keyed per piece since each piece has its own size list.
+// Sizes are width × height in inches; values are USD cents.
+const SURF_ART_PIECES = {
+  "BE": {
+    prices: {
+      "30x20": 50000,    // $500
+      "45x30": 125000,   // $1,250
+      "60x40": 375000,   // $3,750
+      "75x50": 495000,   // $4,950
+      "90x60": 825000,   // $8,250
+    },
+    labels: {
+      "30x20": "30 × 20 in",
+      "45x30": "45 × 30 in",
+      "60x40": "60 × 40 in",
+      "75x50": "75 × 50 in",
+      "90x60": "90 × 60 in",
+    },
+  },
+  "HIGH TIDE": {
+    prices: {
+      "30x19": 50000,    // $500
+      "45x28": 125000,   // $1,250
+      "60x38": 375000,   // $3,750
+      "90x56": 825000,   // $8,250
+    },
+    labels: {
+      "30x19": "30 × 19 in",
+      "45x28": "45 × 28 in",
+      "60x38": "60 × 38 in",
+      "90x56": "90 × 56 in",
+    },
+  },
 };
 
 export default async (req) => {
@@ -119,17 +138,21 @@ async function handleSupersun(body, key, req) {
 // Fixed artwork (no palette/word customization), choose size only.
 // ───────────────────────────────────────────────────────────────────────────────
 async function handleSurfArt(body, key, req) {
-  const size = String(body.size || "");
-  if (!SURF_ART_PRICES[size]) return json({ error: "invalid_size" }, 400);
-  const amount = SURF_ART_PRICES[size];        // trusted price, in cents
-  const sizeLabel = SURF_ART_SIZE_LABELS[size];
+  // Title identifies which Surf Art piece is being ordered (each has its own size list)
+  const title = (String(body.title || "BE").slice(0, 40).trim().toUpperCase()) || "BE";
+  const piece = SURF_ART_PIECES[title];
+  if (!piece) return json({ error: "invalid_piece" }, 400);
 
-  const title = (String(body.title || "BE").slice(0, 40).trim()) || "BE";
+  const size = String(body.size || "");
+  if (!piece.prices[size]) return json({ error: "invalid_size" }, 400);
+  const amount = piece.prices[size];           // trusted price, in cents
+  const sizeLabel = piece.labels[size];
+
   const artist = (String(body.artist || "Harry").slice(0, 40).trim()) || "Harry";
   const storeCode = String(body.storeCode || "").slice(0, 40).trim();
 
   const origin = new URL(req.url).origin;
-  const description = `${title} · by ${artist} · Surf Art Series · Print №01`.slice(0, 480);
+  const description = `${title} · by ${artist} · Surf Art Series`.slice(0, 480);
 
   const params = new URLSearchParams();
   params.append("mode", "payment");
