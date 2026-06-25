@@ -162,6 +162,11 @@ async function handleSupersun(body, key, req) {
   if (paletteName) params.append("payment_intent_data[metadata][palette_name]", paletteName);
   if (storeCode) params.append("payment_intent_data[metadata][store_code]", storeCode);
 
+  // Statement descriptor suffix — shows up on the customer's bank statement so they
+  // recognize the charge as SUPERSUN, not Wundrful, Inc. Combined with the base
+  // descriptor set in Stripe Settings; total <= 22 chars and no special characters.
+  params.append("payment_intent_data[statement_descriptor_suffix]", "SUPERSUN");
+
   return submitToStripe(params, key);
 }
 
@@ -213,6 +218,11 @@ async function handleSurfArt(body, key, req) {
   params.append("payment_intent_data[metadata][artist]", artist);
   params.append("payment_intent_data[metadata][size_label]", sizeLabel);
   if (storeCode) params.append("payment_intent_data[metadata][store_code]", storeCode);
+
+  // Statement descriptor suffix — same SUPERSUN brand as the parent site so customers
+  // recognize the charge. Surf Art lives at supersun.art/surf-art-*, so SUPERSUN
+  // is the recognizable name on their bank statement.
+  params.append("payment_intent_data[statement_descriptor_suffix]", "SUPERSUN");
 
   return submitToStripe(params, key);
 }
