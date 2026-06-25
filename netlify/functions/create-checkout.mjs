@@ -139,13 +139,25 @@ async function handleSupersun(body, key, req) {
   params.append("cancel_url", `${origin}/#commission`);
   params.append("billing_address_collection", "auto");
   params.append("phone_number_collection[enabled]", "true");
+  // Stripe Tax: calculate sales tax automatically based on buyer's shipping address.
+  // We're registered with CDTFA in California; Stripe Tax handles destination-based
+  // local rates within CA (8.25%–10.25%) and applies $0 tax for states where we
+  // don't have nexus. Tax is added ON TOP of the displayed price (exclusive).
+  params.append("automatic_tax[enabled]", "true");
+  // Collect shipping address so Stripe Tax knows the destination. Required for
+  // accurate CA local rates even when the customer is picking up in person.
+  params.append("shipping_address_collection[allowed_countries][0]", "US");
   params.append("custom_text[submit][message]",
-    "Made to order — ready in 10\u201314 days. Pick up in store, or we'll email you a shipping quote.");
+    "Made to order — ready in 10\u201314 days. Pick up in store, or we'll email you a shipping quote. Sales tax added at checkout.");
   params.append("line_items[0][quantity]", "1");
   params.append("line_items[0][price_data][currency]", "usd");
   params.append("line_items[0][price_data][unit_amount]", String(amount));
+  // tax_behavior: "exclusive" → tax added on top of unit_amount. "txcd_99999999"
+  // = General - Tangible Goods, matching the account's preset category in Stripe Tax.
+  params.append("line_items[0][price_data][tax_behavior]", "exclusive");
   params.append("line_items[0][price_data][product_data][name]", `SUPERSUN — ${sizeLabel} poster`);
   params.append("line_items[0][price_data][product_data][description]", description);
+  params.append("line_items[0][price_data][product_data][tax_code]", "txcd_99999999");
   params.append("metadata[product]", "supersun");
   params.append("metadata[word]", word);
   params.append("metadata[size]", size);
@@ -197,13 +209,18 @@ async function handleSurfArt(body, key, req) {
   params.append("cancel_url", `${origin}/surf-art.html`);
   params.append("billing_address_collection", "auto");
   params.append("phone_number_collection[enabled]", "true");
+  // Stripe Tax: same setup as SUPERSUN — registered in CA, exclusive (tax on top).
+  params.append("automatic_tax[enabled]", "true");
+  params.append("shipping_address_collection[allowed_countries][0]", "US");
   params.append("custom_text[submit][message]",
-    "Made to order — ready in 14\u201321 days. Pick up in store, or we'll email you a shipping quote.");
+    "Made to order — ready in 14\u201321 days. Pick up in store, or we'll email you a shipping quote. Sales tax added at checkout.");
   params.append("line_items[0][quantity]", "1");
   params.append("line_items[0][price_data][currency]", "usd");
   params.append("line_items[0][price_data][unit_amount]", String(amount));
+  params.append("line_items[0][price_data][tax_behavior]", "exclusive");
   params.append("line_items[0][price_data][product_data][name]", `${title} — ${sizeLabel} (Surf Art)`);
   params.append("line_items[0][price_data][product_data][description]", description);
+  params.append("line_items[0][price_data][product_data][tax_code]", "txcd_99999999");
   params.append("metadata[product]", "surf-art");
   params.append("metadata[series]", "surf-art");
   params.append("metadata[title]", title);
