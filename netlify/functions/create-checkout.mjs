@@ -179,6 +179,10 @@ async function handleSupersun(body, key, req) {
   // descriptor set in Stripe Settings; total <= 22 chars and no special characters.
   params.append("payment_intent_data[statement_descriptor_suffix]", "SUPERSUN");
 
+  // Create a Customer from the email the buyer enters at checkout, so Stripe can
+  // auto-send the payment receipt ("Successful payments" is enabled in Settings).
+  params.append("customer_creation", "always");
+
   return submitToStripe(params, key);
 }
 
@@ -240,6 +244,10 @@ async function handleSurfArt(body, key, req) {
   // recognize the charge. Surf Art lives at supersun.art/surf-art-*, so SUPERSUN
   // is the recognizable name on their bank statement.
   params.append("payment_intent_data[statement_descriptor_suffix]", "SUPERSUN");
+
+  // Create a Customer from the email the buyer enters at checkout, so Stripe can
+  // auto-send the payment receipt ("Successful payments" is enabled in Settings).
+  params.append("customer_creation", "always");
 
   return submitToStripe(params, key);
 }
