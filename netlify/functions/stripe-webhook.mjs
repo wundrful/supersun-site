@@ -10,7 +10,7 @@
 //   RESEND_API_KEY         — your Resend API key (already set for palette.mjs)
 // Optional:
 //   ORDER_NOTIFY_EMAIL     — where notifications go (default: hello@supersun.art)
-//   ORDER_FROM_EMAIL       — from header (default: "SUPERSUN <onboarding@resend.dev>")
+//   ORDER_FROM_EMAIL       — from header (default: "SUPERSUN <hello@supersun.art>")
 //
 // Zero dependencies — uses global fetch + Web Crypto for signature verification.
 
@@ -20,7 +20,20 @@ export default async (req) => {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   const resendKey = process.env.RESEND_API_KEY;
   const notifyTo = process.env.ORDER_NOTIFY_EMAIL || "hello@supersun.art";
+  // Default sender is Resend's built-in verified test address so email flows
+  // even before supersun.art is verified in Resend. Override with ORDER_FROM_EMAIL
+  // once the domain is verified (e.g. "SUPERSUN <orders@supersun.art>").
   const fromAddr = process.env.ORDER_FROM_EMAIL || "SUPERSUN <onboarding@resend.dev>";
+
+  // Diagnostic: prints to the Netlify function log on every invocation so we can
+  // see at a glance whether the runtime actually received the env vars.
+  console.log("stripe-webhook env check", {
+    hasWebhookSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
+    hasResendKey: !!process.env.RESEND_API_KEY,
+    resendKeyPrefix: (process.env.RESEND_API_KEY || "").slice(0, 3),
+    notifyTo,
+    fromAddr,
+  });
 
   if (!secret) return new Response("missing_webhook_secret", { status: 500 });
 
@@ -74,6 +87,36 @@ export default async (req) => {
   } catch (e) {
     console.error("exception", String(e));
     return new Response("exception", { status: 500 });
+  }
+
+  // ── Customer order confirmation (branded) ────────────────────────────────────
+  // Sent to the buyer, separate from the internal notification above. This send is
+  // best-effort: a failure here is logged but does NOT fail the webhook, because
+  // the owner has already been notified and we don't want Stripe retrying forever.
+  const customerEmail = session.customer_details && session.customer_details.email;
+  if (customerEmail) {
+    try {
+      const { subject: cSubject, html: cHtml } = buildCustomerEmail(session);
+      const cr = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${resendKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: fromAddr,
+          to: [customerEmail],
+          subject: cSubject,
+          html: cHtml,
+          reply_to: notifyTo, // customer replies reach the shop
+        }),
+      });
+      if (!cr.ok) {
+        console.error("customer_email_error", cr.status, await cr.text());
+      }
+    } catch (e) {
+      console.error("customer_email_exception", String(e));
+    }
   }
 
   return new Response("ok", { status: 200 });
@@ -200,6 +243,80 @@ function buildEmail(session) {
 
         <tr><td style="padding:22px 4px;text-align:center;font-size:11px;color:#8a8a73;letter-spacing:0.5px;">
           Made by hand. Made to order.
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  return { subject, html };
+}
+
+// ───────────────────────────────────────────────────────────────────────────────
+// Customer order confirmation — warm, branded, sent to the buyer.
+// Shows what they designed, the made-to-order turnaround, and the shipping policy
+// (matches the site/checkout copy: in-store pickup OR a shipping quote by email).
+// ───────────────────────────────────────────────────────────────────────────────
+function buildCustomerEmail(session) {
+  const m = session.metadata || {};
+  const product = String(m.product || "supersun").toLowerCase();
+  const isSurf = product === "surf-art";
+
+  const cust = session.customer_details || {};
+  const firstName = String(cust.name || "").trim().split(/\s+/)[0] || "there";
+  const sizeLabel = m.size_label || m.size || "";
+  // Turnaround matches each product's own checkout copy.
+  const turnaround = isSurf ? "14–21 days" : "10–14 days";
+
+  let subject;
+  let pieceLine;
+  let paletteBlock = "";
+
+  if (isSurf) {
+    const title = m.title || "Surf Art";
+    subject = `Your SUPERSUN order — ${title}`;
+    pieceLine = `${esc(title)} · ${esc(sizeLabel)}`;
+  } else {
+    const word = m.word || "SUPERSUN";
+    const paletteName = m.palette_name || "";
+    const colors = String(m.palette_colors || "").split(/\s+/).filter(Boolean);
+    subject = `Your SUPERSUN order — "${word}"`;
+    pieceLine = `"${esc(word)}"${paletteName ? ` · ${esc(paletteName)}` : ""} · ${esc(sizeLabel)}`;
+    paletteBlock = colors.length ? paletteSection(colors) : "";
+  }
+
+  const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#EDE7D3;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#EDE7D3;padding:24px 12px;">
+    <tr><td align="center">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#EDE7D3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#2D2E20;">
+
+        <tr><td style="padding:8px 4px 20px;">
+          <div style="font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:#5a5b48;font-weight:600;">Order received</div>
+          <div style="font-size:26px;font-weight:700;letter-spacing:1px;margin-top:4px;">SUPERSUN</div>
+        </td></tr>
+
+        <tr><td style="background:#F3EEDD;border:1px solid rgba(45,46,32,0.12);border-radius:6px;padding:22px 24px;">
+          <p style="margin:0 0 14px;font-size:16px;line-height:1.55;">Thanks, ${esc(firstName)} — we've got your order and we're excited to make it.</p>
+          <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#5a5b48;font-weight:600;margin:6px 0 6px;">Your piece</div>
+          <div style="font-size:18px;line-height:1.5;">${pieceLine}</div>
+          ${paletteBlock}
+        </td></tr>
+
+        <tr><td style="height:14px;"></td></tr>
+
+        <tr><td style="background:#F3EEDD;border:1px solid rgba(45,46,32,0.12);border-radius:6px;padding:22px 24px;font-size:15px;line-height:1.6;">
+          <p style="margin:0 0 12px;"><strong>Made by hand, made to order.</strong> Each piece is designed, printed on fine art paper, mounted to wood, and sealed in resin — so it takes about <strong>${turnaround}</strong> to finish.</p>
+          <p style="margin:0;">When it's ready, you can <strong>pick it up in store</strong> or we'll <strong>email you a shipping quote</strong> — your call. We'll be in touch with progress along the way.</p>
+        </td></tr>
+
+        <tr><td style="padding:22px 4px;text-align:center;font-size:12px;color:#8a8a73;line-height:1.6;">
+          Questions? Just reply to this email.<br>
+          SUPERSUN · hand-made in California · <a href="https://supersun.art" style="color:#5a5b48;">supersun.art</a>
         </td></tr>
 
       </table>
