@@ -10,7 +10,7 @@
 //   RESEND_API_KEY         — your Resend API key (already set for palette.mjs)
 // Optional:
 //   ORDER_NOTIFY_EMAIL     — where notifications go (default: hello@supersun.art)
-//   ORDER_FROM_EMAIL       — from header (default: "SUPERSUN <hello@supersun.art>")
+//   ORDER_FROM_EMAIL       — from header (default: "SUPERSUN <onboarding@resend.dev>")
 //
 // Zero dependencies — uses global fetch + Web Crypto for signature verification.
 
@@ -20,7 +20,7 @@ export default async (req) => {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   const resendKey = process.env.RESEND_API_KEY;
   const notifyTo = process.env.ORDER_NOTIFY_EMAIL || "hello@supersun.art";
-  const fromAddr = process.env.ORDER_FROM_EMAIL || "SUPERSUN <hello@supersun.art>";
+  const fromAddr = process.env.ORDER_FROM_EMAIL || "SUPERSUN <onboarding@resend.dev>";
 
   if (!secret) return new Response("missing_webhook_secret", { status: 500 });
 
